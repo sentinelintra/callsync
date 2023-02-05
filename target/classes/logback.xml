@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <property name="USER_HOME" value="log" />
+
+    <appender name="FILE-THREAD" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <!-- This is MDC value -->
+        <!-- We will assign a value to 'logFileName' via Java code -->
+        <discriminator>
+            <key>logThreadName</key>
+            <defaultValue>head0</defaultValue>
+        </discriminator>
+
+        <sift>
+            <!-- A standard RollingFileAppender, the log file is based on 'logFileName' at runtime  -->
+            <appender name="FILE-${logThreadName}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                <file>${USER_HOME}/callstat-${logThreadName}.log</file>
+                <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                    <Pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %level %logger{35} - %msg%n</Pattern>
+                </encoder>
+                <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+                    <FileNamePattern>${USER_HOME}/callstat-${logThreadName}.%i.log.gz</FileNamePattern>
+                    <MinIndex>1</MinIndex>
+                    <MaxIndex>100</MaxIndex>
+                </rollingPolicy>
+                <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+                    <MaxFileSize>50MB</MaxFileSize>
+                </triggeringPolicy>
+            </appender>
+        </sift>
+    </appender>
+
+    <appender name="FILE-ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${USER_HOME}/callstat.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${USER_HOME}/callstat.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <!-- each archived file, size max 10MB -->
+            <maxFileSize>50MB</maxFileSize>
+            <!-- total size of all archive files, if total size > 20GB, it will delete old archived file -->
+            <totalSizeCap>100GB</totalSizeCap>
+            <!-- 60 days to keep -->
+            <maxHistory>100</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d %p %c{1.} [%t] %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %-5level %logger{36} - %msg%n
+            </Pattern>
+        </layout>
+    </appender>
+
+    <logger name="ru.sentinelcredit.callsync.service" level="trace"
+            additivity="false">
+        <appender-ref ref="FILE-THREAD" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="ru.sentinelcredit.callsync.App" level="trace"
+            additivity="false">
+        <appender-ref ref="FILE-ROLLING" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <root level="trace">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>
